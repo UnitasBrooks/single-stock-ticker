@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">sock_widget_single</string>
+    <string name="appwidget_text">Loading…</string>
+    <string name="add_widget">Add widget</string>
+</resources>

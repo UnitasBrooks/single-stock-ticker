@@ -16,7 +16,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import org.json.*;
 
-import java.util.concurrent.TimeUnit;
 
 /**
  * Implementation of App Widget functionality.
@@ -27,30 +26,23 @@ import java.util.concurrent.TimeUnit;
 public class StockWidget extends AppWidgetProvider {
 
     private static final String CLICKED = "CLICKED";
+    private static final String URL = "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&interval=1min&symbol=AMZN" +
+            "&apikey=TQ5U123VCD8ZZJFX&outputsize=compact";
 
-    void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager,final  int appWidgetId) {
+    void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager, final int appWidgetId) {
         System.out.println("Called!");
-        // Create a Queue, this doesn't seem to work, so trying context
         RequestQueue queue = Volley.newRequestQueue(context);
-        String url = "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&interval=1min&symbol=AMZN" +
-                "&apikey=TQ5U123VCD8ZZJFX&outputsize=compact";
 
-        RemoteViews views = new RemoteViews(context.getPackageName(),
-                R.layout.stock_widget);
-        views.setTextViewText(R.id.appwidget_text, "Loading...");
-        appWidgetManager.updateAppWidget(appWidgetId, views);
 
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+        updateText("Loading...", context, appWidgetManager, appWidgetId);
+
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, URL,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
                         // Display the first 500 characters of the response string.
                         System.out.println("Response is: "+ response.substring(0,500));
-
-                        RemoteViews views = new RemoteViews(context.getPackageName(),
-                                R.layout.stock_widget);
-                        views.setTextViewText(R.id.appwidget_text, getPriceFromJSON(response));
-                        appWidgetManager.updateAppWidget(appWidgetId, views);
+                        updateText(getPriceFromJSON(response), context, appWidgetManager, appWidgetId);
 
                     }
                 },
@@ -88,7 +80,7 @@ public class StockWidget extends AppWidgetProvider {
     @Override
     public void onDisabled(Context context) {
         // Enter relevant functionality for when the last widget is disabled
-        System.out.println("I HAVE BEEN Disabled");
+        System.out.println("I HAVE BEEN DISABVLED");
     }
 
     @Override
@@ -96,7 +88,7 @@ public class StockWidget extends AppWidgetProvider {
     {
 
         if (CLICKED.equals(intent.getAction())) {
-            System.out.println("clicked!");
+            System.out.println("Clicked!");
 
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context.getApplicationContext());
             ComponentName thisWidget = new ComponentName(context.getApplicationContext(), StockWidget.class);
@@ -135,22 +127,25 @@ public class StockWidget extends AppWidgetProvider {
 
     }
 
+    private static void updateText(String text, Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
+        RemoteViews views = new RemoteViews(context.getPackageName(),
+                R.layout.stock_widget);
+        views.setTextViewText(R.id.appwidget_text, text);
+        appWidgetManager.updateAppWidget(appWidgetId, views);
+    }
+
     private static RetryPolicy getRetryPolicy() {
         return new RetryPolicy() {
             @Override
             public int getCurrentTimeout() {
                 return 50000;
             }
-
             @Override
             public int getCurrentRetryCount() {
                 return 50000;
             }
-
             @Override
-            public void retry(VolleyError error) throws VolleyError {
-
-            }
+            public void retry(VolleyError error) throws VolleyError {}
         };
     }
 
